@@ -1,0 +1,55 @@
+---
+title: "Shaofei Shen_45503745_assignment 2_Q1"
+author: "Shaofei Shen"
+date: "2019/9/5"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Q1
+#### estimate q30
+$q_x=dx/E_x$
+according to the time line lifeA,C,D,E,G,H,I,J (8)are with initial exposed to risk=1, LifeB,F are with initial exposed to risk=0, death occurs at Life G and J.
+```{r}
+dx_0<-2
+Ex_0<-8
+qx_0<-dx_0/Ex_0
+qx_0
+```
+
+#### MLE
+we need to find assuring age at the policy issue date. To calculate the central expose to risk, we need to find out either the observstion is died during the assuring age 30 (PA_30). If the observation deied occur during assuring age 30, the observstion end date is the death date, which include LIfe G and F. If the observation did not died with the assring age 30, he survive, and the observation end at the assuring age 31 (PA_31). If observstion (Life B) died before the assuring age started, the expose to risk is 0.
+```{r}
+Life_wd <- data.frame(Life=c("A","B","c","D","E","F","G","H","I","J"),death=c("1995/6/20","1993/06/12","1995/12/18","1996/01/04","1996/04/28","1995/06/16","1996/04/21","1995/02/16","1996/08/22","1997/02/17"),PA_30=c("1994/06/20","1994/08/06","1994/12/18","1995/01/04","1995/04/28","1995/06/16","1995/10/29","1994/02/16","1995/08/22","1996/03/06"))
+
+Life_wd$date_diff <- as.Date(as.character(Life_wd$death), format="%Y/%m/%d")-
+                  as.Date(as.character(Life_wd$PA_30), format="%Y/%m/%d")
+Life_wd
+```
+We assume poisson Dx~poisson($E_x*\mu_{x+1/2}$)
+people who alive are with probability of $e^{-\mu}$
+people who die with probability of $e^{-E_x^c*\mu}*E_x^c*\mu$
+acording to the poisson distribution ${\frac{e^{-E_x^c*\mu_{1/2}}*(E_x^c*\mu_{1/2})}{d_x!}}$
+```{r}
+loglik_1<-function(mu){
+  L_mu=exp(-6*mu)*exp(-175/365.25*mu)*(175/365.25)*exp(-348/365.25*mu)*mu^2*(348/365.25)
+  return(-L_mu)
+}
+nlm(loglik_1,p=c(0.4))
+q_30<-1-exp(-0.269)
+q_30
+```
+the maximum likelihood estimation of $\mu_x$ is 0.269. When assume constant force of mortality, $q_{30}=1-p_{30}=1-e^{-\mu}=0.2359$  
+
+If we do not assume distribution, the maximum likelihood is given by $L=q_{30}^6*_{\frac{175}{365.2}}q_{30}*_{\frac{248}{365.2}}q_{30}$
+under constant force of mortality $tp_x=(P_x)^t$
+```{r}
+loglik_0<-function(q_x){
+  L_q_X=(1-q_x)^6*(1-(1-q_x)^(175/365.25))*(1-(1-q_x)^(348/365.25))
+  return(-L_q_X)
+}
+nlm(loglik_0,p=c(0.4))
+```
